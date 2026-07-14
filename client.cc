@@ -34,7 +34,7 @@ pthread_mutex_t history_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t screen_mutex = PTHREAD_MUTEX_INITIALIZER;
 int running = 1;
 
-/* 확장 기능: 시스템 알림, 공지, 기능 제목, 입력 프롬프트를 색으로 구분한다. */
+/* 시스템 알림, 공지, 기능 제목, 입력 프롬프트를 색으로 구분한다. */
 #define COLOR_RESET  "\033[0m"
 #define COLOR_GREEN  "\033[1;32m"
 #define COLOR_CYAN   "\033[1;36m"
@@ -59,7 +59,7 @@ void print_subline(void)
     printf(COLOR_GRAY "--------------------------------------------------" COLOR_RESET "\n");
 }
 
-/* 확장 기능: 검색과 답글에 사용할 최근 메시지를 최대 100개까지 저장한다. */
+/*  검색과 답글에 사용할 최근 메시지를 최대 100개까지 저장한다. */
 void save_message(const char *message){
     pthread_mutex_lock(&history_mutex);
 
@@ -81,7 +81,7 @@ void save_message(const char *message){
     pthread_mutex_unlock(&history_mutex);
 }
 
-/* 확장 기능: 저장된 모든 메시지에서 입력한 키워드가 포함된 메시지를 찾는다. */
+/* 저장된 모든 메시지에서 입력한 키워드가 포함된 메시지를 찾는다. */
 void search_messages(const char *keyword){
     int i;
     int found_count =0;
@@ -128,7 +128,7 @@ void search_messages(const char *keyword){
 
 void show_message_history(void)
 {
-    /* 확장 기능: 답글에 사용할 번호와 함께 최근 메시지 기록을 출력한다. */
+    /* 답글에 사용할 번호와 함께 최근 메시지 기록을 출력한다. */
     int i;
 
     pthread_mutex_lock(&history_mutex);
@@ -166,7 +166,7 @@ void show_message_history(void)
 
 int make_reply_message(int message_number,const char *reply_content, const char *nickname,char *reply_msg,int reply_msg_size)
 {
-     /* 확장 기능: 선택한 원문과 작성자의 닉네임을 포함하는 답글 형식을 만든다. */
+     /* 선택한 원문과 작성자의 닉네임을 포함하는 답글 형식을 만든다. */
     int index = message_number - 1;
     char original_message[HISTORY_SIZE];
 
@@ -198,7 +198,7 @@ int make_reply_message(int message_number,const char *reply_content, const char 
     return 1;
 }
 
-/* 확장 기능: 사용자가 명령어를 외우지 않아도 되도록 사용법을 제공한다. */
+/* 사용자가 명령어를 외우지 않아도 되도록 사용법을 제공한다. */
 void print_command_guide(void)
 {
     printf("\n");
@@ -242,7 +242,7 @@ void* recv_msg(void* arg){
         pthread_mutex_lock(&screen_mutex);
         printf("\r\033[2K");
 
-        /* 확장 기능: 시스템 알림·공지를 일반 채팅과 다른 색으로 표시한다. */
+        /*시스템 알림·공지를 일반 채팅과 다른 색으로 표시한다. */
         if(strncmp(msg, "[입장]", strlen("[입장]")) == 0 ||
            strncmp(msg, "[퇴장]", strlen("[퇴장]")) == 0){
             printf(COLOR_GRAY "%s" COLOR_RESET, msg);
@@ -277,7 +277,7 @@ void print_current_date(void)
 
 void print_date_if_changed(void)
 {
-    /* 확장 기능: 날짜가 달라진 경우에만 회색 날짜 구분선을 출력한다. */
+    /* 날짜가 달라진 경우에만 회색 날짜 구분선을 출력한다. */
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[]){
     printf(COLOR_CYAN "                   닉네임 설정" COLOR_RESET "\n");
     print_line();
     
-     /* 확장 기능: 닉네임: 빈 닉네임과 지나치게 긴 닉네임을 허용하지 않는다. */
+     /*닉네임: 빈 닉네임과 지나치게 긴 닉네임을 허용하지 않는다. */
     do {
         printf("닉네임을 입력하세요 (1~20자): ");
         if(fgets(nickname, sizeof(nickname), stdin) == NULL){
@@ -359,7 +359,7 @@ int main(int argc, char *argv[]){
     pthread_create(&recv_thread, NULL, recv_msg, NULL);
     pthread_detach(recv_thread);
 
-     /* 확장 기능: 서버가 입장 알림에 사용할 닉네임을 /nick 명령으로 등록한다. */
+     /* 서버가 입장 알림에 사용할 닉네임을 /nick 명령으로 등록한다. */
     char nick_msg[100];
     sprintf(nick_msg, "/nick %s\n", nickname);
     write(sock, nick_msg, strlen(nick_msg));
@@ -380,7 +380,7 @@ int main(int argc, char *argv[]){
             print_prompt();
             continue;
         }
-        /* 확장 기능: 채팅 중 명령어 안내를 다시 확인한다. */
+        /* 채팅 중 명령어 안내를 다시 확인한다. */
         if(strcmp(input, "/help\n") == 0){
             pthread_mutex_lock(&screen_mutex);
             print_command_guide();
@@ -389,7 +389,7 @@ int main(int argc, char *argv[]){
             continue;
         }
         if(strcmp(input, "/clear\n") == 0){
-            /* 확장 기능: 채팅 상단만 다시 표시한다. */
+            /* 채팅 상단만 다시 표시한다. */
             pthread_mutex_lock(&screen_mutex);
             printf("\033[2J\033[H");
             printf(COLOR_CYAN "채팅 프로그램" COLOR_RESET "  |  서버에 연결되었습니다\n");
@@ -409,7 +409,7 @@ int main(int argc, char *argv[]){
             continue;
         }
 
-        /* 확장 기능: /search 뒤의 문자열을 키워드로 사용해 메시지를 검색한다. */
+        /* /search 뒤의 문자열을 키워드로 사용해 메시지를 검색한다. */
         if(strncmp(input, "/search ", 8)==0){
             char *keyword = input+8;
             keyword[strcspn(keyword,"\n")] = '\0';
@@ -431,7 +431,7 @@ int main(int argc, char *argv[]){
             continue;
         }
         
-        /* 확장 기능: /reply 메시지번호 답글내용 형식으로 답글을 작성한다. */
+        /* /reply 메시지번호 답글내용 형식으로 답글을 작성한다. */
         if(strncmp(input, "/reply ", 7) == 0){
             int message_number;
             int consumed = 0;
@@ -488,7 +488,7 @@ int main(int argc, char *argv[]){
             continue;
         }
 
-         /* 확장 기능: 공지 작성 요청은 서버가 모든 접속자에게 전송하도록 전달한다. */
+         /* 공지 작성 요청은 서버가 모든 접속자에게 전송하도록 전달한다. */
         if(strncmp(input, "/notice ", 8) == 0){
             write(sock, input, strlen(input));
             print_prompt();
